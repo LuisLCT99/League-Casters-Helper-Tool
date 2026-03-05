@@ -90,26 +90,28 @@ def getChampsLocal(data):
 
 
 def validateNames(verifiedName):
+    if verifiedName == "Nunu & Willump":
+         verifiedName = "Nunu"
+    elif verifiedName == "Wukong":
+         verifiedName = "MonkeyKing"
+
     if " " in verifiedName: # Remove space and apostrophes from champion names to match the API format
-                verifiedName = verifiedName.replace(" ", "")
-                verNameChar = list(verifiedName)
-                if verNameChar[0].islower:
-                     verNameChar[0] = verNameChar[0].upper
-                     verifiedName = verifiedName.capitalize()
+                listVer = verifiedName.split(" ")
+                listVer[0] = listVer[0].capitalize()
+                listVer[1] = listVer[1].capitalize()
+                if verifiedName[0].islower:
+                    verifiedName = "".join(listVer)
                 return verifiedName
     elif "'" in verifiedName:
-                verifiedName = verifiedName.replace("'", "")
-                verNameChar = list(verifiedName)
-                if verNameChar[0].islower:
-                     verNameChar[0] = verNameChar[0].upper
-                     verifiedName = verifiedName.capitalize()
+                listVer = verifiedName.split("'")
+                listVer[0] = listVer[0].capitalize()
+                listVer[1] = listVer[1].capitalize()
+                if verifiedName[0].islower:
+                    verifiedName = "".join(listVer)
                 return verifiedName
     else:
-                verNameChar = list(verifiedName)
-                if verNameChar[0].islower:
-                     verNameChar[0] = verNameChar[0].upper
-                     verifiedName = verifiedName.capitalize()
-                     
+                if verifiedName[0].islower:
+                    verifiedName = verifiedName[0].capitalize() + verifiedName[1:]
                 return verifiedName
     
     
