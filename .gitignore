@@ -1,0 +1,25 @@
+#env variables
+*.env
+
+# Python cache files
+__pycache__/
+*.pyc
+
+# IDE specific files
+.vscode/
+
+# older versions of the script
+ignore/
+
+# log files
+*.log
+# virtual environment
+venv/
+
+# dist and build files
+build/
+*.egg-info/
+*.ps1
+
+# specs
+*.spec
