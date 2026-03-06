@@ -2,11 +2,6 @@ import tkinter
 
 import requests
 import warnings
-# versReq = requests.get('https://ddragon.leagueoflegends.com/api/versions.json')
-# versions = versReq.json()
-# currVer = versions[0]
-# Getting the current version of the game to get all the champs 
-
 
 
 def champDropdown(currVer,lang): # Getting all the champs names for the drowpdown menu
@@ -62,7 +57,6 @@ def getLocalGameInfo():
         print(f"An error occurred: {err}")
         return
     
-
 def getChampsLocal(data):
     # Get the list of champions in the live game and their roles
     playerBlueSide= {}
@@ -88,30 +82,49 @@ def getChampsLocal(data):
     #     print(f"Champion: {i}, Role: {playerRedSide[i]}") # debug 
     return playerBlueSide, playerRedSide
 
-
 def validateNames(verifiedName):
     if verifiedName == "Nunu & Willump":
          verifiedName = "Nunu"
+         return verifiedName
     elif verifiedName == "Wukong":
          verifiedName = "MonkeyKing"
-
-    if " " in verifiedName: # Remove space and apostrophes from champion names to match the API format
-                listVer = verifiedName.split(" ")
-                listVer[0] = listVer[0].capitalize()
-                listVer[1] = listVer[1].capitalize()
-                if verifiedName[0].islower:
-                    verifiedName = "".join(listVer)
-                return verifiedName
-    elif "'" in verifiedName:
-                listVer = verifiedName.split("'")
-                listVer[0] = listVer[0].capitalize()
-                listVer[1] = listVer[1].capitalize()
-                if verifiedName[0].islower:
-                    verifiedName = "".join(listVer)
-                return verifiedName
+         return verifiedName
+    elif verifiedName == "Bel'Veth":
+         verifiedName = "Belveth"
+         return verifiedName
+    elif verifiedName == "Kai'sa":
+         verifiedName = "Kaisa"
+         return verifiedName
+    elif verifiedName == "Cho'Gath":
+         verifiedName = "Chogath"
+         return verifiedName
+    elif verifiedName == "Kha'Zix":
+         verifiedName = "Khazix"
+         return verifiedName
+    elif verifiedName == "Renata Glasc":
+         verifiedName = "Renata"
+         return verifiedName
+    elif verifiedName == "Vel'Koz":
+         verifiedName = "Velkoz"
+         return verifiedName
     else:
-                if verifiedName[0].islower:
-                    verifiedName = verifiedName[0].capitalize() + verifiedName[1:]
-                return verifiedName
+        if " " in verifiedName: # Remove space and apostrophes from champion names to match the API format
+                    listVer = verifiedName.split(" ")
+                    listVer[0] = listVer[0].capitalize()
+                    listVer[1] = listVer[1].capitalize()
+                    if verifiedName[0].islower:
+                        verifiedName = "".join(listVer)
+                    return verifiedName
+        elif "'" in verifiedName:
+                    listVer = verifiedName.split("'")
+                    listVer[0] = listVer[0].capitalize()
+                    listVer[1] = listVer[1].capitalize()
+                    if verifiedName[0].islower:
+                        verifiedName = "".join(listVer)
+                    return verifiedName
+        else:
+                    if verifiedName[0].islower:
+                        verifiedName = verifiedName[0].capitalize() + verifiedName[1:]
+                    return verifiedName
     
     

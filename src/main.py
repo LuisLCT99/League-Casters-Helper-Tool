@@ -26,14 +26,12 @@ else:
 import methods
 from dicts import langOpts, serversList
 
-
 # Getting the current version of the game to get the updated list of all the champs (needed as the game updates every 2 weeks and champ releases & reworks can alter the list if stored locally)
 versReq = requests.get('https://ddragon.leagueoflegends.com/api/versions.json')
 versions = versReq.json()
 currVer = versions[0]
 champ = ""
 lang = ""
-windowed = True
 champDict = {}
 champNamesBlue = []
 champNamesRed = []
@@ -91,9 +89,12 @@ cbLang = ttk.Combobox(root, values=list(langOpts.keys()))
 cbLang.set("Select a language")
 cbLang.grid(row=0, column=1, columnspan=1, pady=10, padx=10)
 # CheckBox to choose ultimate only mode, will show only the ultimate spell of each champ.
-isChecked = IntVar()
-chkUltimateOnly = Checkbutton(root, text="Ultimate Only Mode", onvalue=1, offvalue=0,variable=isChecked)
-chkUltimateOnly.grid(row=1, column=1, pady=10, padx=10)
+isCheckedR = IntVar()
+isCheckedNames = IntVar()
+chkUltimateOnly = Checkbutton(root, text="Ultimate Only Mode", onvalue=1, offvalue=0,variable=isCheckedR)
+chkUltimateOnly.grid(row=1, column=1, pady=10, padx=10, sticky='w')
+chkPrintNames = Checkbutton(root, text='Print Champ Names', onvalue=1, offvalue=0, variable=isCheckedNames)
+chkPrintNames.grid(row=1, column=1, pady=10, padx=10, sticky='e')
 
 # Widgets for manual inputs search
 lblBlue = Label(root, text="Write blue team champs separated by a ',' :")
@@ -129,60 +130,33 @@ link = "http://github.com/LuisLCT99"
 githubLogo = Image.open(githubPath).resize((40,40))
 gitLogo = ImageTk.PhotoImage(githubLogo)
 
+def changeOrder(widget1, widget2, initial): #This function swaps the grid positions of two widgets using their grid information.
+    target = widget1.grid_info()
+    widget1.grid(row=initial['row'], column=initial['column'])
+    widget2.grid(row=target['row'], column=target['column'])
 
+def on_click(event): # This function initiates the drag action when you click on a widget.
+    widget = event.widget
+    if isinstance(widget, Label):
+        start = (event.x,event.y)
+        grid_info = widget.grid_info()
+        widget.bind("<B1-Motion>", lambda event:drag_motion(event, widget, start))
+        widget.bind("<ButtonRelease-1>", lambda event: drag_release(event, widget, grid_info))
 
-# Update the language and initialize the champ comboboxes with the champs names, also disable the language selection after selection and show the button to show the spells of the selected champions
-def updateLang(boxesLeft,boxesRight):
-    lang = langOpts.get(cbLang.get(), "en_US") # Default to English if no selection is made
-    # lbl = Label(root, text=lang) # Debug tag to check if the language is being selected correctly
-    # lbl.pack()
-    
-    btnLang.config(state=DISABLED) # Disable the button after selection
-    cbLang.config(state=DISABLED) # Disable the combobox after selection
-    initializeChampBoxes(boxesLeft,boxesRight)
-    # cbChamp.set("Select a champion")
-    # cbChamp.config(values=list(methods.champDropdown(currVer,lang)))
-    # cbChamp.pack()
-    btnLang.destroy() # Destroy the button after selection
-    cbLang.destroy() # Destroy the combobox after selection
-    fullScreenBtn.grid(row=6, column=0, columnspan=1, pady=10)
-    closeBtn.grid(row=6, column=2, columnspan=1, pady=10) # Show the full screen and close buttons after the language is selected and the champ selection is shown
-    btnChampSel=Button(root, text="Show Spells", command=lambda: printChampSpells2(currVer,lang,champ,lblsRight,lblsLeft,initBoxesLeft,initBoxesRight,btnChampSel))
-    btnChampSel.grid(row=6, column=1, columnspan=1, pady=10)
-    print(lang) # Debug print to check if the language is being selected correctly
-    return lang,cbChamp,btnChampSel
+def drag_motion(event, widget, start): # This function moves the widget according to the mouse's movement. The lift() method ensures the widget stays on top during the drag.
+    x = widget.winfo_x() + event.x - start[0]
+    y = widget.winfo_y() + event.y - start[1]
+    widget.lift()
+    widget.place(x=x, y=y)
 
-# Deprecated function replaced by printChampSpells2 to show all the spells at the same time instead of one by one, but keeping it for reference
-# def printChampSpells(currVer,lang,champ,cbChamp,lblSpells):
-#     lblSpells.config(text="") # Clear the label text before displaying new spells
-#     champ = cbChamp.get()
-#     champSpells = methods.champSel(currVer,lang,champ)
-#     for spell in champSpells:
-#         lblSpells.config(text=lblSpells.cget("text") + "\n" + spell) # Update the label text to include the spells
-#         lblSpells.pack()
-#     # btnChampSel.destroy() # Destroy the button after selection
-
-# Second version of the previous function to show all the spells at the same time, iterating through all the selected champs and showing their spells in order
-def printChampSpells2(currVer,lang,champ,lblsLeft, lblsRight, initBoxesLeft, initBoxesRight,btnChampSel):
-    for i,lbl in enumerate(lblsLeft, start=0):
-        lbl.config(text="") # Clear the label text before displaying new spells
-        lbl.grid(row=i, column=0, padx=10, pady=5, sticky='w')
-        champ = initBoxesLeft[i].get()
-        champSpells = methods.champSel(currVer,lang,champ)
-        initBoxesLeft[i].destroy() # Destroy the combobox after selection
-        for spell in champSpells:
-            lbl.config(text=lbl.cget("text") + "\n" + spell) # Update the label text to include the spells
-            
-    for i,lbl in enumerate(lblsRight, start=0):
-        lbl.config(text="") # Clear the label text before displaying new spells
-        lbl.grid(row=i, column=2, padx=10, pady=5, sticky='e')
-        champ = initBoxesRight[i].get()
-        champSpells = methods.champSel(currVer,lang,champ)
-        initBoxesRight[i].destroy() # Destroy the combobox after selection
-        for spell in champSpells:
-            lbl.config(text=lbl.cget("text") + "\n" + spell) # Update the label text to include the spells
-    root.config(bg='red') # Set the background color to white to make the transparent color work
-    btnChampSel.destroy() # Destroy the button after selection
+def drag_release(event, widget, grid_info): # This function drops the widget and checks where it is released. It swaps the widgets if released over another.
+    widget.lower()
+    x,y = root.winfo_pointerxy()
+    target_widget = root.winfo_containing(x,y)
+    if isinstance(target_widget, Label):
+        changeOrder(target_widget, widget, grid_info)
+    else:
+        widget.grid(row=grid_info['row'], column = grid_info['column'])
 
 # Function to initialize the champ comboboxes with the names of all the champs
 def initializeChampBoxes(boxesLeft,boxesRight):
@@ -229,7 +203,7 @@ def getPUUID(name, tag, region):
         return puuid
     except requests.exceptions.HTTPError as err:
         print(f"HTTP error occurred: {err}")
-        msgError= tkinter.messagebox.showerror("Error", "The user does not exist.\nTry again with a different Riot ID.")
+        msgError = tkinter.messagebox.showerror("Error", "The user does not exist.\nTry again with a different Riot ID.")
         print(f"An error occurred: {err}")
         puuid = "ERROR"
         return puuid
@@ -238,8 +212,9 @@ def getPUUID(name, tag, region):
         puuid = "ERROR"
         return
 
+# Get live game info using PUUID
 def getLiveGameInfo(puuid, server):
-    # Get live game info using PUUID
+    
     url = f"https://{server}.api.riotgames.com/lol/spectator/v5/active-games/by-summoner/{puuid}?api_key={API_KEY}"
     warnings.filterwarnings("ignore")
     try:
@@ -250,19 +225,17 @@ def getLiveGameInfo(puuid, server):
         # print(f"Live Game Data: {data}") # debug print
     except requests.exceptions.HTTPError as err:
         print(f"HTTP error occurred: {err}")
-        msgError= tkinter.messagebox.showerror("Error", "The user is not currently in a game or has streamer mode active \nPlease try again with a different Riot ID.")
+        msgError = tkinter.messagebox.showerror("Error", "The user is not currently in a game or has streamer mode active \nPlease try again with a different Riot ID.")
         print(f"An error occurred: {err}")
         return
     except Exception as err:
-        msgError= tkinter.messagebox.showerror("Error", "The user is not currently in a game or has streamer mode active \nPlease try again with a different Riot ID.")
+        msgError = tkinter.messagebox.showerror("Error", "The user is not currently in a game or has streamer mode active \nPlease try again with a different Riot ID.")
         print(f"An error occurred: {err}")
         return
-    
 
+# Get the list of champions in the live game
 def getChamps(data):
-    # Get the list of champions in the live game
     champIds = []
-    # participantRoles = [] 
     playerBlueSide= []
     playerRedSide = []
 
@@ -272,12 +245,6 @@ def getChamps(data):
             playerBlueSide.append(participant['championId'])
         elif participant['teamId'] == 200:
             playerRedSide.append(participant['championId'])
-    
-    # for champId in champIds:
-    #     for champName, champKey in champDict.items():
-    #         if champKey == str(champId):
-    #             print(f"Champion ID: {champId}, Champion Name: {champName}") # debug print to check if the champion IDs are being correctly matched to their names
-
         
     for champId in playerBlueSide:
         for champName, champKey in champDict.items():
@@ -285,27 +252,33 @@ def getChamps(data):
                 champNamesBlue.append(champName)
     print(f"Champions in the blue team: {champNamesBlue}") # debug print
 
-    
     for champId in playerRedSide:
         for champName, champKey in champDict.items():
             if champKey == str(champId):
                 champNamesRed.append(champName)
     print(f"Champions in the red team: {champNamesRed}") # debug print
 
+# Print champion spells 
 def printChampSpells3(currVer,lang,champ,lblsLeft, lblsRight, champNamesBlue, champNamesRed):
     for i,lbl in enumerate(lblsLeft, start=0):
         lbl.config(text="") # Clear the label text before displaying new spells
         lbl.grid(row=i, column=0, padx=10, pady=5, sticky='w')
+        champPre = champNamesBlue[i]
         champ = champNamesBlue[i]
         champSpells = methods.champSel(currVer,lang,champ)
+        if isCheckedNames.get() == 1:
+            lbl.config(lbl.config(text=lbl.cget("text") + champPre))
         for spell in champSpells:
             lbl.config(text=lbl.cget("text") + "\n" + spell) # Update the label text to include the spells
             
     for i,lbl in enumerate(lblsRight, start=0):
         lbl.config(text="") # Clear the label text before displaying new spells
         lbl.grid(row=i, column=2, padx=10, pady=5, sticky='e')
+        champPre = champNamesRed[i]
         champ = champNamesRed[i]
         champSpells = methods.champSel(currVer,lang,champ)
+        if isCheckedNames.get() == 1:
+            lbl.config(lbl.config(text=lbl.cget("text") + champPre))
         for spell in champSpells:
             lbl.config(text=lbl.cget("text") + "\n" + spell) # Update the label text to include the spells
     destroyWidgets(3) # Destroy the initial widgets after showing the spells to prevent changes while the app is running
@@ -317,19 +290,24 @@ def printOnlyUlt(currVer,lang,champ,lblsLeft, lblsRight, champNamesBlue, champNa
         lbl.grid(row=i, column=0, padx=10, pady=5, sticky='w')
         champ = champNamesBlue[i]
         champSpells = methods.champSel(currVer,lang,champ)
-        lbl.config(text=champSpells[3]) # Update the label text to include only the ultimate spell
+        if isCheckedNames.get() == 1:
+            lbl.config(lbl.config(text=lbl.cget("text") + "\t" + champ))
+        lbl.config(lbl.config(text=lbl.cget("text") +"\t" + champSpells[3])) # Update the label text to include only the ultimate spell
             
     for i,lbl in enumerate(lblsRight, start=0):
         lbl.config(text="") # Clear the label text before displaying new spells
         lbl.grid(row=i, column=2, padx=10, pady=5, sticky='e')
         champ = champNamesRed[i]
         champSpells = methods.champSel(currVer,lang,champ)
-        lbl.config(text=champSpells[3]) # Update the label text to include only the ultimate spell
+        if isCheckedNames.get() == 1:
+            lbl.config(lbl.config(text=lbl.cget("text") + champ))
+        lbl.config(lbl.config(text=lbl.cget("text") +"\t" + champSpells[3])) # Update the label text to include only the ultimate spell
     destroyWidgets(3)
 
+# Function to be called by the button showing warnings if needed and going to champ spells print (Live game search)
 def login(txtRiotID, cbServers, cbLang):
     if cbLang.get() == "Select a language" or cbServers.get() == "Select a server" or txtRiotID.get("1.0", "end-1c") == "": # Check if the user has selected a language, a server and entered a riot ID before proceeding
-        msgError= tkinter.messagebox.showerror("Error", "Please select a language,a server and enter a riot IDbefore proceeding.")
+        msgError = tkinter.messagebox.showerror("Error", "Please select a language,a server and enter a riot IDbefore proceeding.")
         return
     else:
         userId = txtRiotID.get("1.0", "end-1c") # Get the text from the Text widget
@@ -341,11 +319,12 @@ def login(txtRiotID, cbServers, cbLang):
         if puuid != "ERROR":
             data = getLiveGameInfo(puuid, serversList.get(cbServers.get()))
             getChamps(data)
-            if isChecked.get() == 1: # Check if the ultimate only mode is selected
+            if isCheckedR.get() == 1: # Check if the ultimate only mode is selected
                 printOnlyUlt(currVer,lang,champ,lblsLeft, lblsRight, champNamesBlue, champNamesRed)
             else:
                 printChampSpells3(currVer,lang,champ,lblsLeft, lblsRight, champNamesBlue, champNamesRed)
-        
+
+# Region selector function, chooses a region based on the chosen server
 def regionSelector(server):
     print(f"Selected server: {server}") # Debug print to check if the server is being selected correctly
     if (server == 'EUW1' or server == 'EUN1' or server == 'RU' or server == 'TR1' or server == 'ME1'):
@@ -356,29 +335,32 @@ def regionSelector(server):
         region = 'ASIA'
     return region
 
+# Function to be called by the button showing warnings if needed and going to champ spells print (Local games)
 def loginLocal():
     if cbLang.get() == "Select a language": # Check if the user has selected a language before proceeding
-        msgError= tkinter.messagebox.showerror("Error", "Please select a language before proceeding.")
+        msgError = tkinter.messagebox.showerror("Error", "Please select a language before proceeding.")
         return
     else:
         lang = langOpts.get(cbLang.get(), "en_US") # Get the selected language code
         data = methods.getLocalGameInfo()
         playerBlueSide,playerRedSide = methods.getChampsLocal(data)
-        if isChecked.get() == 1: # Check if the ultimate only mode is selected
+        if isCheckedR.get() == 1: # Check if the ultimate only mode is selected
             printOnlyUltLocal(lang,currVer,champ,lblsLeft, lblsRight, playerBlueSide, playerRedSide)
         else:
             printChampSpellsLocal(currVer,lang,champ,lblsLeft, lblsRight, playerBlueSide, playerRedSide)
 
+# Function to be called by the button with the warnings if you dont select a language
 def manualData():
     if cbLang.get() == "Select a language": # Check if the user has selected a language before proceeding
-        msgError= tkinter.messagebox.showerror("Error", "Please select a language before proceeding.")
+        msgError = tkinter.messagebox.showerror("Error", "Please select a language before proceeding.")
         return
     else:
         lang = langOpts.get(cbLang.get(), "en_US") 
         print(lang)
         getChampsManual()
         return lang
-    
+
+# Removes the comboboxes, labels & creates new ones for the manual input 
 def getChampsManual():
     destroyWidgets(0)
     lblBlue.grid(row=0, column=0, pady=10, padx=10, sticky='w')
@@ -388,91 +370,118 @@ def getChampsManual():
     btnLocal.grid(row=2, column=1, pady=10, padx=10)
     return 
 
+# Print spells when you input the names manually
 def printChampsManual(currVer,lang,champ):
     lang = langOpts.get(cbLang.get(), "en_US")
     if txtBlue.get("1.0", "end-1c")=="" or txtRed.get("1.0", "end-1c") == "":
-        msgError= tkinter.messagebox.showerror("Error", "Fields can't be empty")
+        msgError = tkinter.messagebox.showerror("Error", "Fields can't be empty")
         return
     else:
         champSplitBlue = txtBlue.get("1.0", "end-1c").split(',')
         champSplitRed = txtRed.get("1.0", "end-1c").split(',')
 
     if len(champSplitBlue) > 5 or  len(champSplitRed) > 5:
-        msgError= tkinter.messagebox.showerror("Error", "Please write only 5 champs")
+        msgError = tkinter.messagebox.showerror("Error", "Please write only 5 champs")
         return
     else:
-        if isChecked.get() == 1: # Check if the ultimate only mode is selected
+        if isCheckedR.get() == 1: # Check if the ultimate only mode is selected
             for i,lbl in enumerate(lblsLeft, start = 0):
                 lbl.config(text="") # Clear the label text before displaying new spells
                 lbl.grid(row=i, column=0, padx=10, pady=5, sticky='w')
+                champPre = champSplitBlue[i]
                 champ = methods.validateNames(champSplitBlue[i])
                 champSpells = methods.champSel(currVer,lang,champ)
+                if isCheckedNames.get() == 1:
+                    lbl.config(text = lbl.config(text=lbl.cget("text") + champPre))
                 for spell in champSpells:
                     lbl.config(text=lbl.cget("text") + "\n" + spell) # Update the label text to include the spells
             
             for i,lbl in enumerate(lblsRight, start=0):
                 lbl.config(text="") # Clear the label text before displaying new spells
                 lbl.grid(row=i, column=2, padx=10, pady=5, sticky='e')
+                champPre = champSplitRed[i]
                 champ = methods.validateNames(champSplitRed[i])
                 champSpells = methods.champSel(currVer,lang,champ)
+                if isCheckedNames.get() == 1:
+                    lbl.config(text = lbl.config(text=lbl.cget("text") + champPre))
                 for spell in champSpells:
                     lbl.config(text=lbl.cget("text") + "\n" + spell) # Update the label text to include the spells
         else:
             for i,lbl in enumerate(lblsLeft, start = 0):
                 lbl.config(text="") # Clear the label text before displaying new spells
                 lbl.grid(row=i, column=0, padx=10, pady=5, sticky='w')
+                champPre = champSplitBlue[i]
                 champ = methods.validateNames(champSplitBlue[i])
                 champSpells = methods.champSel(currVer,lang,champ)
-                lbl.config(text=champSpells[3])
+                if isCheckedNames.get() == 1:
+                    lbl.config(lbl.config(text=lbl.cget("text") + champPre))
+                lbl.config(lbl.config(text=lbl.cget("text") +"\t" + champSpells[3]))
             
             for i,lbl in enumerate(lblsRight, start=0):
                 lbl.config(text="") # Clear the label text before displaying new spells
                 lbl.grid(row=i, column=2, padx=10, pady=5, sticky='e')
+                champPre = champSplitRed[i]
                 champ = methods.validateNames(champSplitRed[i])
                 champSpells = methods.champSel(currVer,lang,champ)
-                lbl.config(text=champSpells[3])
+                if isCheckedNames.get() == 1:
+                    lbl.config(lbl.config(text=lbl.cget("text") + champPre))
+                lbl.config(lbl.config(text=lbl.cget("text") +"\t" + champSpells[3]))
     destroyWidgets(3)
 
+# Print spells when watching a live/replay game in your device 
 def printChampSpellsLocal(currVer,lang,champ,lblsLeft, lblsRight, playerBlueSide, playerRedSide):
     champNamesBlue = list(playerBlueSide.keys())
     champNamesRed = list(playerRedSide.keys())
     for i,lbl in enumerate(lblsLeft, start=0):
         lbl.config(text="") # Clear the label text before displaying new spells
         lbl.grid(row=i, column=0, padx=10, pady=5, sticky='w')
-        champ = champNamesBlue[i]
+        champPre = champNamesBlue[i]
+        champ = methods.validateNames(champNamesBlue[i])
         champSpells = methods.champSel(currVer,lang,champ)
+        if isCheckedNames.get() == 1:
+            lbl.config(lbl.config(text=lbl.cget("text") + champPre))
         for spell in champSpells:
             lbl.config(text=lbl.cget("text") + "\n" + spell) # Update the label text to include the spells
             
     for i,lbl in enumerate(lblsRight, start=0):
         lbl.config(text="") # Clear the label text before displaying new spells
         lbl.grid(row=i, column=2, padx=10, pady=5, sticky='e')
-        champ = champNamesRed[i]
+        champPre = champNamesRed[i]
+        champ = methods.validateNames(champNamesRed[i])
         champSpells = methods.champSel(currVer,lang,champ)
+        if isCheckedNames.get() == 1:
+            lbl.config(lbl.config(text=lbl.cget("text") + champPre))
         for spell in champSpells:
             lbl.config(text=lbl.cget("text") + "\n" + spell) # Update the label text to include the spells
     destroyWidgets(3) # Destroy the initial widgets after showing the spells to prevent changes while the app is running
 
+# Print spells when watching a live/replay game in your device (ult only version)
 def printOnlyUltLocal(lang,currVer,champ,lblsLeft, lblsRight, playerBlueSide, playerRedSide):
     champNamesBlue = list(playerBlueSide.keys())
     champNamesRed = list(playerRedSide.keys())
     for i,lbl in enumerate(lblsLeft, start=0):
         lbl.config(text="") # Clear the label text before displaying new spells
         lbl.grid(row=i, column=0, padx=10, pady=5, sticky='w')
-        champ = champNamesBlue[i]
+        champPre = champNamesBlue[i]
+        champ = methods.validateNames(champNamesBlue[i])
         champSpells = methods.champSel(currVer,lang,champ)
-        lbl.config(text=champSpells[3]) # Update the label text to include only the ultimate spell
+        if isCheckedNames.get() == 1:
+            lbl.config(lbl.config(text=lbl.cget("text") + champPre))
+        lbl.config(lbl.config(text=lbl.cget("text") + "\n" + champSpells[3])) # Update the label text to include only the ultimate spell
             
     for i,lbl in enumerate(lblsRight, start=0):
         lbl.config(text="") # Clear the label text before displaying new spells
         lbl.grid(row=i, column=2, padx=10, pady=5, sticky='e')
-        champ = champNamesRed[i]
+        champPre = champNamesRed[i]
+        champ = methods.validateNames(champNamesRed[i])
         champSpells = methods.champSel(currVer,lang,champ)
-        lbl.config(text=champSpells[3]) # Update the label text to include only the ultimate spell
+        if isCheckedNames.get() == 1:
+            lbl.config(lbl.config(text=lbl.cget("text") + champPre))
+        lbl.config(lbl.config(text=lbl.cget("text") + "\n" + champSpells[3])) # Update the label text to include only the ultimate spell
     destroyWidgets(3)
 
+# Destroy the buttons after showing the spells to prevent changes while the app is running
 def destroyWidgets(int):
-    # Destroy the buttons after showing the spells to prevent changes while the app is running
     match int:
         case 0:
             lblId.destroy()
@@ -483,6 +492,7 @@ def destroyWidgets(int):
             localGameBtn.destroy() 
             manualEntryBtn.destroy() 
             chkUltimateOnly.destroy()
+            chkPrintNames.destroy()
             fullScreenBtn.grid(row=6, column=0, columnspan=1, pady=10)
             closeBtn.grid(row=6, column=2, columnspan=1, pady=10) # Show the full screen and close buttons after the language is selected and the champ selection is shown
         case 1:
@@ -505,30 +515,23 @@ def destroyWidgets(int):
             localGameBtn.destroy() 
             manualEntryBtn.destroy() 
             chkUltimateOnly.destroy()
+            chkPrintNames.destroy()
             btnLocal.destroy()
             fullScreenBtn.grid(row=6, column=0, columnspan=1, pady=10)
             closeBtn.grid(row=6, column=2, columnspan=1, pady=10) # Show the full screen and close buttons after the language is selected and the champ selection is shown
             root.config(bg='red') # Set the background color to white to make the transparent color work
 
-    #gitBtn.destroy()
-
-
-# Function to toggle full screen with fullScreenBtn NEEDS WORK 
-def fullScreen(windowed):
-    if windowed:
-        root.attributes('-fullscreen', windowed)
-        windowed = False
-        print(windowed)
+# Function to toggle full screen with fullScreenBtn
+def fullScreen():
+    if root.state() == 'normal':
+       root.state('zoomed')
     else:
-        root.attributes('-fullscreen', windowed)
-        windowed = True
-        print(windowed) # Debug print to check if the full screen toggle is working correctly
-    return windowed
-
+        root.state('normal')
 # Function to close the app toggled by closeBtn
 def closeApp():
     root.destroy()
 
+# Open url for github link and possible other social links in the future // link to champ wiki
 def openUrl(url):
     webbrowser.open_new(url)
 
@@ -536,7 +539,7 @@ def openUrl(url):
 btnLang=Button(root, text="Show Selection", command=lambda: login(txtRiotID, cbServers, cbLang))
 btnLang.grid(row=2, column=1, columnspan=1, pady=10)
 
-fullScreenBtn = Button(root, text="Toggle Full Screen",repeatdelay=100, repeatinterval=100, command=lambda: fullScreen(windowed))
+fullScreenBtn = Button(root, text="Toggle Full Screen",repeatdelay=100, repeatinterval=100, command=lambda: fullScreen())
 fullScreenBtn.grid_forget() # Hide the button until the language is selected and the champ selection is shown
 closeBtn = Button(root, text="Close App", command=closeApp)
 closeBtn.grid_forget() # Hide the button until the language is selected and the champ selection is shown
@@ -554,5 +557,7 @@ gitBtn = Button(root, image=gitLogo, command=lambda: openUrl(link), border=0)
 gitBtn.image=gitLogo
 gitBtn.grid(row=6, column=0, columnspan=1, padx=10,pady=10, sticky='w')
 
+
+root.bind("<Button-1>", on_click)
 root.mainloop()
 

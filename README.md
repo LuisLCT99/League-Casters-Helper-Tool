@@ -18,21 +18,20 @@ Write the names manually:
 
 
 
-- Future possible options/TODO:
-    - ~~Exit button~~
+- TODO List: 
     - Switch language.
-    - ~~Full screen app~~ (Still needs to be able to comeback to original size)
-    - ~~Live data from an actual game~~
-    - ~~Live data from a local game/replay~~
-    - **Optional** Character names along the spell names.
-    - ~~Only ults to appear (R button)~~
     - Clean the code & remove redundant methods.
     - Write in comboBox to search in the lists.
     - Update graphics to make it more appealing.
-    - Verify boxes are selected and text is not empty 
     - Save last Lang & Server used
     - Light & Dark mode with switch and auto adjust to system theme
-    
 
-
-    
+- Past updates
+    - ~~Draggable labels to temp fix the problem of not getting the champs in correct order when spectating a ranked game~~
+    - ~~**Optional** Character names along the spell names.~~
+    - ~~Exit button~~
+    - ~~Full screen app~~ (Still needs to be able to comeback to original size)
+    - ~~Live data from an actual game~~
+    - ~~Live data from a local game/replay~~
+    - ~~Only ults to appear (R button)~~
+    - ~~Verify boxes are selected and text is not empty~~
