@@ -8,7 +8,7 @@ Readme:
 - dist/League Casting Helper.exe # Executable file for the app
 
 Main screen:
-<img width="1026" height="608" alt="image" src="https://github.com/user-attachments/assets/77977a91-ac2b-4cd8-9e4f-7d555f158473" />
+<img width="1026" height="608" alt="image" src="https://github.com/user-attachments/assets/c73b5d66-e129-4370-aadb-a71ba84139a1" />
 
 Preview of the tool during game spectate:
 <img width="1918" height="1079" alt="image" src="https://github.com/user-attachments/assets/bcfe3488-34b4-4ef7-b207-db684e25b030" />
