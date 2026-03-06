@@ -1,5 +1,12 @@
 Readme:
 
+To use this app you have 3 ways:
+    - Spectate a live game with a RIOT Id, choosing language for the spells and the server of the RIOT Id → Click "Show Selection"
+    - Spectating a game in your computer (live game by being spectator in lobby or a replay) choosing language → Click "Spectating locally"
+    - Write the names manually, choosing language first → Click "Choose the champ manually"
+For all the options you can add the champion name along the spells & only printing the ultimate.
+
+
 - main.py # Main GUI 
 - methods.py # Methods to retrieve data
 - dicts.py # Dict to store all languages listed in https://ddragon.leagueoflegends.com/cdn/languages.json & all RIOT Games servers (Not auto-updated yet)
